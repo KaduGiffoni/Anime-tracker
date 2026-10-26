@@ -2,152 +2,1063 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Anime Tracker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Anime Tracker — Minimal & Elegant</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#121214">
+  <meta name="theme-color" content="#090a0f">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+  <!-- Fontes Google Inter e Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
   <style>
     :root {
-      --bg: #121214;
-      --card-bg: #202024;
-      --text: #e1e1e6;
-      --text-muted: #a8a8b3;
-      --primary: #8257e5;
-      --primary-hover: #9466ff;
-      --danger: #e54242;
-      --border: #323238;
-      --radius: 8px;
-    }
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-    body { background-color: var(--bg); color: var(--text); padding-bottom: 70px; }
-    header { background-color: var(--card-bg); padding: 1rem; text-align: center; border-bottom: 1px solid var(--border); }
-    h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
-    
-    /* Navegação */
-    nav {
-      position: fixed; bottom: 0; left: 0; right: 0;
-      background: var(--card-bg); display: flex;
-      border-top: 1px solid var(--border); z-index: 100;
-    }
-    nav button {
-      flex: 1; padding: 14px; background: none; border: none;
-      color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer;
-    }
-    nav button.active { color: var(--primary); border-top: 2px solid var(--primary); }
+      --bg: #0b0c10;
+      --bg-surface: #13151b;
+      --bg-surface-elevated: #1a1c24;
+      --bg-card: rgba(22, 25, 34, 0.75);
+      --bg-card-hover: rgba(30, 34, 46, 0.9);
+      --border: rgba(255, 255, 255, 0.07);
+      --border-focus: rgba(138, 110, 255, 0.5);
+      
+      --text: #f0f2f7;
+      --text-muted: #8b92a5;
+      --text-dim: #5c6274;
 
-    /* Conteúdo */
-    .container { max-width: 1000px; margin: auto; padding: 1rem; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+      --primary: #7c4dff;
+      --primary-light: #9d77ff;
+      --primary-glow: rgba(124, 77, 255, 0.25);
+      --accent-green: #00e676;
+      --accent-amber: #ffb300;
+      --danger: #ff5252;
+      --danger-surface: rgba(255, 82, 82, 0.12);
 
-    /* Busca */
-    .search-bar { display: flex; gap: 8px; margin-bottom: 1rem; }
-    input, select {
-      background: var(--card-bg); border: 1px solid var(--border);
-      color: var(--text); padding: 10px; border-radius: var(--radius); outline: none;
-    }
-    .search-bar input { flex: 1; }
-    button.btn {
-      background: var(--primary); color: #fff; border: none;
-      padding: 10px 16px; border-radius: var(--radius); cursor: pointer; font-weight: 600;
-    }
-    button.btn:hover { background: var(--primary-hover); }
-    button.btn-danger { background: var(--danger); }
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-pill: 9999px;
 
-    /* Grid de Cards */
-    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+      --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.55);
+      --glow: 0 0 20px var(--primary-glow);
+
+      --transition-fast: 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+      --transition-smooth: 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding-bottom: 90px;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(ellipse 60% 40% at 50% -10%, rgba(124, 77, 255, 0.12), transparent 70%),
+        radial-gradient(circle at 90% 80%, rgba(0, 230, 118, 0.04), transparent 40%);
+    }
+
+    /* Ambient background noise/blur */
+    .ambient-glow {
+      position: fixed;
+      width: 450px;
+      height: 450px;
+      background: radial-gradient(circle, var(--primary-glow) 0%, transparent 70%);
+      top: -150px;
+      left: 50%;
+      transform: translateX(-50%);
+      pointer-events: none;
+      z-index: 0;
+      filter: blur(60px);
+      opacity: 0.6;
+    }
+
+    /* Top Bar */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 90;
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      background: rgba(11, 12, 16, 0.78);
+      border-bottom: 1px solid var(--border);
+      padding: 0.9rem 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-icon {
+      width: 30px;
+      height: 30px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 14px var(--primary-glow);
+    }
+    .brand-icon svg {
+      width: 17px;
+      height: 17px;
+      fill: #fff;
+    }
+
+    .brand span {
+      background: linear-gradient(135deg, #fff 40%, var(--primary-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-icon-subtle {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      width: 38px;
+      height: 38px;
+      border-radius: var(--radius-pill);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      position: relative;
+    }
+    .btn-icon-subtle:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      border: 2px solid var(--bg-surface);
+      transition: background 0.3s;
+    }
+    .status-dot.connected {
+      background: var(--accent-green);
+      box-shadow: 0 0 8px rgba(0, 230, 118, 0.6);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1180px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.4rem 1.2rem;
+      position: relative;
+      z-index: 1;
+      flex: 1;
+    }
+
+    /* Tabs */
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .tab-content.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Hero / Section Header */
+    .section-head {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 1.4rem;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .section-desc {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    /* Barra de Busca */
+    .search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 4px 6px 4px 14px;
+      transition: all var(--transition-smooth);
+      margin-bottom: 1.4rem;
+    }
+    .search-box:focus-within {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--primary-glow);
+      background: var(--bg-surface-elevated);
+    }
+    .search-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-size: 0.95rem;
+      padding: 8px 0;
+    }
+    .search-box input::placeholder {
+      color: var(--text-dim);
+    }
+    .search-box svg {
+      width: 18px;
+      height: 18px;
+      fill: var(--text-muted);
+      margin-right: 10px;
+      flex-shrink: 0;
+    }
+
+    /* Filtros & Pills */
+    .pill-group {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      margin-bottom: 1.4rem;
+      scrollbar-width: none;
+    }
+    .pill-group::-webkit-scrollbar {
+      display: none;
+    }
+    .pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pill:hover {
+      background: rgba(255, 255, 255, 0.08);
+      color: var(--text);
+    }
+    .pill.active {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 2px 10px var(--primary-glow);
+    }
+    .pill-count {
+      background: rgba(0, 0, 0, 0.25);
+      padding: 1px 7px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+    }
+
+    /* Grid Moderno e Responsivo */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+      gap: 16px;
+    }
+    @media (max-width: 640px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+      }
+    }
+
+    /* Cards */
     .card {
-      background: var(--card-bg); border-radius: var(--radius);
-      border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column;
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform var(--transition-smooth), border-color var(--transition-smooth), box-shadow var(--transition-smooth);
+      position: relative;
     }
-    .card img { width: 100%; height: 280px; object-fit: cover; }
-    .card-body { padding: 12px; flex: 1; display: flex; flex-direction: column; }
-    .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; line-height: 1.3; }
-    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
-    .card-actions { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+    .card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255, 255, 255, 0.16);
+      box-shadow: var(--shadow-lg);
+    }
 
-    .countdown { font-weight: bold; color: #04d361; font-size: 0.85rem; margin-bottom: 4px; }
-    .filters { display: flex; gap: 8px; margin-bottom: 1rem; }
-    .loading { text-align: center; padding: 2rem; color: var(--text-muted); }
+    .card-media {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 11 / 16;
+      background: #171821;
+      overflow: hidden;
+    }
+    .card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .card:hover .card-media img {
+      transform: scale(1.04);
+    }
+
+    .badge-score {
+      position: absolute;
+      top: 8px;
+      left: 8px;
+      background: rgba(11, 12, 16, 0.85);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #ffd166;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-status-tag {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+      padding: 3px 8px;
+      border-radius: var(--radius-pill);
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      backdrop-filter: blur(8px);
+    }
+    .badge-assistindo { background: rgba(124, 77, 255, 0.85); color: #fff; }
+    .badge-completo { background: rgba(0, 230, 118, 0.85); color: #0b0c10; }
+    .badge-planejo { background: rgba(255, 179, 0, 0.85); color: #0b0c10; }
+
+    .card-content {
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      gap: 8px;
+    }
+
+    .card-title {
+      font-size: 0.92rem;
+      font-weight: 600;
+      line-height: 1.35;
+      color: var(--text);
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      min-height: 2.5em;
+    }
+
+    .card-airing {
+      font-size: 0.78rem;
+      color: var(--accent-green);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: rgba(0, 230, 118, 0.08);
+      border: 1px solid rgba(0, 230, 118, 0.18);
+      padding: 4px 8px;
+      border-radius: var(--radius-sm);
+    }
+
+    /* Controles de Lista Rápida (Episódio +/-) */
+    .tracker-control {
+      margin-top: auto;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 6px 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .ep-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+    .ep-stepper {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-step {
+      width: 26px;
+      height: 26px;
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      font-weight: 700;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .btn-step:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+      color: #fff;
+    }
+    .ep-val {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.88rem;
+      font-weight: 600;
+      width: 32px;
+      text-align: center;
+    }
+
+    /* Botão Principal */
+    .btn-action {
+      width: 100%;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      padding: 8px 12px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    .btn-action:hover {
+      background: var(--primary-light);
+      box-shadow: 0 4px 12px var(--primary-glow);
+    }
+    .btn-action.added {
+      background: rgba(0, 230, 118, 0.15);
+      color: var(--accent-green);
+      border: 1px solid rgba(0, 230, 118, 0.3);
+      cursor: default;
+    }
+
+    /* Quick Detail / Settings Trigger */
+    .card-footer-actions {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-top: 4px;
+    }
+    .btn-subtle-icon {
+      flex: 1;
+      padding: 6px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all var(--transition-fast);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .btn-subtle-icon:hover {
+      background: rgba(255, 255, 255, 0.09);
+      color: var(--text);
+    }
+    .btn-subtle-danger:hover {
+      background: var(--danger-surface);
+      color: var(--danger);
+      border-color: rgba(255, 82, 82, 0.3);
+    }
+
+    /* Calendário */
+    .calendar-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .cal-day-group {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      overflow: hidden;
+    }
+    .cal-day-header {
+      padding: 10px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--primary-light);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .cal-item {
+      display: flex;
+      align-items: center;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+      gap: 12px;
+      transition: background var(--transition-fast);
+    }
+    .cal-item:last-child {
+      border-bottom: none;
+    }
+    .cal-item:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .cal-time {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.05);
+      padding: 4px 8px;
+      border-radius: 6px;
+      white-space: nowrap;
+    }
+    .cal-info {
+      flex: 1;
+    }
+    .cal-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-bottom: 2px;
+    }
+    .cal-ep {
+      font-size: 0.8rem;
+      color: var(--accent-green);
+      font-weight: 600;
+    }
+
+    /* Bottom Navigation */
+    nav.bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      z-index: 100;
+      background: rgba(11, 12, 16, 0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 8px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+      max-width: 600px;
+      margin: 0 auto;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    }
+    @media (min-width: 601px) {
+      nav.bottom-nav {
+        bottom: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: var(--radius-pill);
+        box-shadow: var(--shadow-lg);
+      }
+    }
+
+    .nav-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      cursor: pointer;
+      padding: 6px 14px;
+      border-radius: var(--radius-pill);
+      transition: all var(--transition-fast);
+    }
+    .nav-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+      transition: transform var(--transition-fast);
+    }
+    .nav-btn:hover {
+      color: var(--text);
+    }
+    .nav-btn.active {
+      color: #fff;
+      background: rgba(124, 77, 255, 0.2);
+    }
+    .nav-btn.active svg {
+      fill: var(--primary-light);
+      transform: translateY(-2px);
+    }
+
+    /* Modal Sheet */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(10px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--transition-smooth);
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-sheet {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 440px;
+      box-shadow: var(--shadow-lg);
+      transform: scale(0.96) translateY(10px);
+      transition: all var(--transition-smooth);
+      overflow: hidden;
+    }
+    .modal-overlay.active .modal-sheet {
+      transform: scale(1) translateY(0);
+    }
+    .modal-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .modal-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 1.2rem;
+      padding: 4px;
+    }
+    .modal-body {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .input-label {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .input-field {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color var(--transition-fast);
+    }
+    .input-field:focus {
+      border-color: var(--primary);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      pointer-events: none;
+      width: 90%;
+      max-width: 380px;
+    }
+    .toast {
+      background: rgba(22, 25, 34, 0.95);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(16px);
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: var(--radius-md);
+      font-size: 0.88rem;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      animation: slideDown 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .toast.success { border-left: 4px solid var(--accent-green); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Skeleton Loading State */
+    .skeleton {
+      background: linear-gradient(90deg, rgba(255, 255, 255, 0.03) 25%, rgba(255, 255, 255, 0.08) 50%, rgba(255, 255, 255, 0.03) 75%);
+      background-size: 200% 100%;
+      animation: skeletonShimmer 1.5s infinite;
+      border-radius: var(--radius-sm);
+    }
+    @keyframes skeletonShimmer {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      color: var(--text-dim);
+    }
+    .empty-icon {
+      font-size: 2.4rem;
+      opacity: 0.6;
+    }
+    .empty-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+    .empty-text {
+      font-size: 0.85rem;
+      max-width: 320px;
+    }
   </style>
 </head>
 <body>
 
+  <div class="ambient-glow"></div>
+
+  <!-- Barra Superior -->
   <header>
-    <h1>Anime Tracker</h1>
+    <div class="brand">
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      </div>
+      <span>Anime Tracker</span>
+    </div>
+
+    <div class="header-actions">
+      <button class="btn-icon-subtle" onclick="abrirConfiguracoes()" title="Configurações da API & Senha" id="btn-config">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+          <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.484.484 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58a.485.485 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+        </svg>
+        <span class="status-dot" id="status-indicador" title="Desconectado"></span>
+      </button>
+    </div>
   </header>
 
-  <div class="container">
+  <!-- Container Principal -->
+  <main class="container">
+
     <!-- ABA: TEMPORADA -->
-    <div id="tab-temporada" class="tab-content active">
-      <div id="temporada-list" class="grid"></div>
-    </div>
+    <section id="tab-temporada" class="tab-content active">
+      <div class="section-head">
+        <h2 class="section-title">Lançamentos da Temporada</h2>
+        <p class="section-desc" id="season-desc">Descubra os animes em alta no ar no Japão.</p>
+      </div>
+
+      <div id="temporada-list" class="grid">
+        <!-- Render dinâmico -->
+      </div>
+    </section>
 
     <!-- ABA: MINHA LISTA -->
-    <div id="tab-lista" class="tab-content">
-      <div class="filters">
-        <select id="filter-status" onchange="renderMinhaLista()">
-          <option value="todos">Todos</option>
-          <option value="assistindo">Assistindo</option>
-          <option value="completo">Completo</option>
-          <option value="planejo">Planejo Ver</option>
-        </select>
+    <section id="tab-lista" class="tab-content">
+      <div class="section-head">
+        <h2 class="section-title">Minha Coleção</h2>
+        <p class="section-desc">Seus animes salvos e progresso sincronizado na nuvem.</p>
       </div>
-      <div id="minha-lista-container" class="grid"></div>
-    </div>
+
+      <!-- Filtros Rápidos -->
+      <div class="pill-group" id="filter-pills">
+        <button class="pill active" onclick="filtrarStatus('todos', this)">Todos <span class="pill-count" id="count-todos">0</span></button>
+        <button class="pill" onclick="filtrarStatus('assistindo', this)">Assistindo <span class="pill-count" id="count-assistindo">0</span></button>
+        <button class="pill" onclick="filtrarStatus('planejo', this)">Planejo Ver <span class="pill-count" id="count-planejo">0</span></button>
+        <button class="pill" onclick="filtrarStatus('completo', this)">Completos <span class="pill-count" id="count-completo">0</span></button>
+      </div>
+
+      <div id="minha-lista-container" class="grid">
+        <!-- Render dinâmico -->
+      </div>
+    </section>
 
     <!-- ABA: CALENDÁRIO -->
-    <div id="tab-calendario" class="tab-content">
-      <div id="calendario-container"></div>
-    </div>
-
-    <!-- ABA: BUSCA -->
-    <div id="tab-busca" class="tab-content">
-      <div class="search-bar">
-        <input type="text" id="search-input" placeholder="Buscar por título no AniList...">
-        <button class="btn" onclick="buscarAnime()">Buscar</button>
+    <section id="tab-calendario" class="tab-content">
+      <div class="section-head">
+        <h2 class="section-title">Próximos Lançamentos</h2>
+        <p class="section-desc">Cronograma dos animes marcados como 'Assistindo'.</p>
       </div>
-      <div id="busca-list" class="grid"></div>
+
+      <div id="calendario-container" class="calendar-timeline">
+        <!-- Render dinâmico -->
+      </div>
+    </section>
+
+    <!-- ABA: BUSCAR -->
+    <section id="tab-busca" class="tab-content">
+      <div class="section-head">
+        <h2 class="section-title">Explorar AniList</h2>
+        <p class="section-desc">Encontre qualquer anime no catálogo mundial.</p>
+      </div>
+
+      <div class="search-box">
+        <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+        <input type="text" id="search-input" placeholder="Digite o nome do anime..." onkeyup="if(event.key==='Enter') buscarAnime()">
+        <button class="pill active" style="margin-right:2px; border:none;" onclick="buscarAnime()">Pesquisar</button>
+      </div>
+
+      <div id="busca-list" class="grid">
+        <div class="empty-state">
+          <div class="empty-icon">🔍</div>
+          <div class="empty-title">Comece digitando algo</div>
+          <div class="empty-text">Pesquise por títulos como Attack on Titan, Frieren, Solo Leveling...</div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Navegação Inferior (Dock Minimalista) -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('tab-temporada', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H5V5h14v14zM7 10h2v7H7zm4-3h2v10h-2zm4 6h2v4h-2z"/></svg>
+      Temporada
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-lista', this)">
+      <svg viewBox="0 0 24 24"><path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H8V4h12v12zm-7-2h2v-2h-2v2zm0-4h2V6h-2v4z"/></svg>
+      Minha Lista
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-calendario', this)">
+      <svg viewBox="0 0 24 24"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2zm-7 5h5v5h-5z"/></svg>
+      Calendário
+    </button>
+    <button class="nav-btn" onclick="switchTab('tab-busca', this)">
+      <svg viewBox="0 0 24 24"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
+      Buscar
+    </button>
+  </nav>
+
+  <!-- Modal: Configurações da API & Senha -->
+  <div class="modal-overlay" id="modal-config">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title">Conexão da API</div>
+        <button class="modal-close" onclick="fecharModal('modal-config')">✕</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size:0.85rem; color:var(--text-muted);">
+          Informe a URL gerada no Google Apps Script (terminada em <code>/exec</code>) e a senha pessoal configurada em <code>API_SENHA</code>.
+        </p>
+
+        <div class="input-group">
+          <label class="input-label">URL do Web App (Apps Script)</label>
+          <input type="text" id="cfg-url" class="input-field" placeholder="https://script.google.com/macros/s/.../exec">
+        </div>
+
+        <div class="input-group">
+          <label class="input-label">Senha Pessoal (API_SENHA)</label>
+          <input type="password" id="cfg-senha" class="input-field" placeholder="Digite sua senha configurada...">
+        </div>
+
+        <button class="btn-action" style="padding: 12px; margin-top: 8px;" onclick="salvarConfiguracoes()">
+          Salvar & Conectar
+        </button>
+      </div>
     </div>
   </div>
 
-  <nav>
-    <button class="active" onclick="switchTab('tab-temporada', this)">Temporada</button>
-    <button onclick="switchTab('tab-lista', this)">Minha Lista</button>
-    <button onclick="switchTab('tab-calendario', this)">Calendário</button>
-    <button onclick="switchTab('tab-busca', this)">Buscar</button>
-  </nav>
+  <!-- Modal: Editar Anime -->
+  <div class="modal-overlay" id="modal-edit">
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div class="modal-title" id="edit-modal-title">Editar Anime</div>
+        <button class="modal-close" onclick="fecharModal('modal-edit')">✕</button>
+      </div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-anime-id">
 
+        <div class="input-group">
+          <label class="input-label">Status</label>
+          <select id="edit-status" class="input-field">
+            <option value="assistindo">Assistindo</option>
+            <option value="planejo">Planejo Ver</option>
+            <option value="completo">Completo</option>
+          </select>
+        </div>
+
+        <div style="display:flex; gap:12px;">
+          <div class="input-group" style="flex:1;">
+            <label class="input-label">Episódio Atual</label>
+            <input type="number" id="edit-ep" class="input-field" min="0" max="10000">
+          </div>
+          <div class="input-group" style="flex:1;">
+            <label class="input-label">Sua Nota (0 a 10)</label>
+            <input type="number" id="edit-nota" class="input-field" min="0" max="10" step="0.5">
+          </div>
+        </div>
+
+        <div style="display:flex; gap:8px; margin-top:10px;">
+          <button class="btn-action" style="flex:1; padding: 12px;" onclick="confirmarEdicao()">Salvar Alterações</button>
+          <button class="btn-subtle-icon btn-subtle-danger" style="flex:0 0 44px; border-radius:var(--radius-sm);" onclick="excluirAnimeModal()" title="Excluir">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- Lógica JavaScript Principal -->
   <script>
-    // URL gerada na publicação do seu Web App no Apps Script
-    const SCRIPT_URL = "https://docs.google.com/spreadsheets/d/1bxRvDgGyD8yMardJ0p7EUe3tUb6xS6OH62vZTHLmXjw/edit?hl=pt-br&gid=881120276#gid=881120276";
+    // Configurações padrão e armazenamento local
+    const STORAGE_KEY_URL = "anime_tracker_url";
+    const STORAGE_KEY_PASS = "anime_tracker_senha";
+
+    let SCRIPT_URL = localStorage.getItem(STORAGE_KEY_URL) || "";
+    let API_SENHA = localStorage.getItem(STORAGE_KEY_PASS) || "";
 
     let minhaListaCache = [];
+    let currentFilter = 'todos';
 
-    // Alternar abas
+    // Inicialização
+    document.addEventListener("DOMContentLoaded", () => {
+      atualizarIndicadorConexao();
+      carregarTemporada();
+
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW:', err));
+      }
+
+      // Se não tiver URL/senha configurada, abre modal de setup suavemente
+      if (!SCRIPT_URL || !API_SENHA) {
+        setTimeout(() => {
+          abrirConfiguracoes();
+          mostrarToast("Configure o Web App e a Senha para sincronizar sua lista", "info");
+        }, 800);
+      }
+    });
+
+    // Indicador visual de conexão no header
+    function atualizarIndicadorConexao() {
+      const dot = document.getElementById("status-indicador");
+      if (SCRIPT_URL && API_SENHA) {
+        dot.classList.add("connected");
+        dot.title = "Configurado & Pronto";
+      } else {
+        dot.classList.remove("connected");
+        dot.title = "Aguardando configuração de API e Senha";
+      }
+    }
+
+    // Gerenciador de Toast
+    function mostrarToast(mensagem, tipo = 'info') {
+      const container = document.getElementById("toast-container");
+      const toast = document.createElement("div");
+      toast.className = `toast ${tipo}`;
+      
+      const icon = tipo === 'success' ? '✓' : tipo === 'error' ? '✕' : 'ℹ';
+      toast.innerHTML = `<span style="font-weight:700;">${icon}</span> <span>${mensagem}</span>`;
+      
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(-10px)';
+        toast.style.transition = 'all 0.25s ease';
+        setTimeout(() => toast.remove(), 250);
+      }, 3500);
+    }
+
+    // Alternar Abas
     function switchTab(tabId, btn) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.nav-btn').forEach(el => el.classList.remove('active'));
       document.getElementById(tabId).classList.add('active');
       btn.classList.add('active');
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
 
       if (tabId === 'tab-lista') carregarMinhaLista();
       if (tabId === 'tab-calendario') carregarCalendario();
     }
 
-    // Identificar ano e temporada atuais
-    function getCurrentSeason() {
-      const now = new Date();
-      const month = now.getMonth() + 1;
-      const year = now.getFullYear();
-      let season = 'WINTER';
-      if (month >= 4 && month <= 6) season = 'SPRING';
-      else if (month >= 7 && month <= 9) season = 'SUMMER';
-      else if (month >= 10 && month <= 12) season = 'FALL';
-      return { season, year };
-    }
-
-    // Consulta GraphQL ao AniList direto do navegador
+    // Consulta GraphQL ao AniList
     async function queryAniList(query, variables) {
       try {
         const res = await fetch('https://graphql.anilist.co', {
@@ -158,28 +1069,52 @@
         const json = await res.json();
         return json.data;
       } catch (e) {
-        console.error("Erro ao consultar AniList:", e);
+        console.error("AniList Error:", e);
         return null;
       }
+    }
+
+    // Temporada Atual
+    function getCurrentSeasonInfo() {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      let season = 'WINTER';
+      let nomeSeason = 'Inverno';
+
+      if (month >= 4 && month <= 6) { season = 'SPRING'; nomeSeason = 'Primavera'; }
+      else if (month >= 7 && month <= 9) { season = 'SUMMER'; nomeSeason = 'Verão'; }
+      else if (month >= 10 && month <= 12) { season = 'FALL'; nomeSeason = 'Outono'; }
+
+      return { season, year, label: `${nomeSeason} de ${year}` };
     }
 
     // Carregar Animes da Temporada
     async function carregarTemporada() {
       const container = document.getElementById('temporada-list');
-      container.innerHTML = '<div class="loading">Buscando lançamentos da temporada...</div>';
+      const descEl = document.getElementById('season-desc');
+      const { season, year, label } = getCurrentSeasonInfo();
+      descEl.textContent = `Em exibição no Japão • Temporada de ${label}`;
 
-      const { season, year } = getCurrentSeason();
+      container.innerHTML = Array(8).fill(0).map(() => `
+        <div class="card" style="pointer-events:none;">
+          <div class="card-media skeleton"></div>
+          <div class="card-content">
+            <div class="skeleton" style="height:18px; width:80%;"></div>
+            <div class="skeleton" style="height:14px; width:50%; margin-top:4px;"></div>
+          </div>
+        </div>
+      `).join('');
+
       const query = `
         query ($season: MediaSeason, $year: Int) {
-          Page(page: 1, perPage: 24) {
+          Page(page: 1, perPage: 28) {
             media(season: $season, seasonYear: $year, type: ANIME, sort: POPULARITY_DESC) {
               id
               title { romaji english }
               coverImage { large }
               averageScore
-              popularity
               genres
-              episodes
               nextAiringEpisode { episode airingAt }
             }
           }
@@ -188,53 +1123,345 @@
 
       const data = await queryAniList(query, { season, year });
       container.innerHTML = '';
-      if (!data || !data.Page) return;
+      if (!data || !data.Page) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-title">Não foi possível conectar ao AniList</div></div>';
+        return;
+      }
 
       data.Page.media.forEach(anime => {
-        const title = anime.title.english || anime.title.romaji;
-        const genres = anime.genres ? anime.genres.slice(0, 2).join(', ') : '';
-        const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : '-';
-        
-        let airingStr = '';
-        if (anime.nextAiringEpisode) {
-          airingStr = `<div class="countdown">Ep. ${anime.nextAiringEpisode.episode}: ${formatTimeLeft(anime.nextAiringEpisode.airingAt)}</div>`;
-        }
-
-        container.innerHTML += `
-          <div class="card">
-            <img src="${anime.coverImage.large}" alt="${title}">
-            <div class="card-body">
-              <div class="card-title">${title}</div>
-              <div class="card-meta">★ ${score} | ${genres}</div>
-              ${airingStr}
-              <div class="card-actions">
-                <button class="btn" onclick="adicionarAnime(${anime.id}, '${escapeHtml(title)}', '${anime.coverImage.large}')">+ Minha Lista</button>
-              </div>
-            </div>
-          </div>
-        `;
+        container.appendChild(criarCardExploracao(anime));
       });
+    }
+
+    // Criar Card do AniList (Temporada & Busca)
+    function criarCardExploracao(anime) {
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const title = anime.title.english || anime.title.romaji;
+      const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : '-';
+      const naLista = minhaListaCache.some(item => Number(item.anilist_id) === anime.id);
+
+      let airingTag = '';
+      if (anime.nextAiringEpisode) {
+        airingTag = `<div class="card-airing">Ep. ${anime.nextAiringEpisode.episode}: ${formatTimeLeft(anime.nextAiringEpisode.airingAt)}</div>`;
+      }
+
+      card.innerHTML = `
+        <div class="card-media">
+          <img src="${anime.coverImage.large}" alt="${title}" loading="lazy">
+          <div class="badge-score">★ ${score}</div>
+        </div>
+        <div class="card-content">
+          <div class="card-title" title="${title}">${title}</div>
+          ${airingTag}
+          <div style="margin-top:auto;">
+            <button class="btn-action ${naLista ? 'added' : ''}" 
+              onclick="toggleAdicionar(this, ${anime.id}, '${escapeQuotes(title)}', '${anime.coverImage.large}')">
+              ${naLista ? '✓ Na sua lista' : '+ Adicionar'}
+            </button>
+          </div>
+        </div>
+      `;
+      return card;
     }
 
     // Formatar contagem regressiva
     function formatTimeLeft(timestamp) {
       const diff = timestamp - Math.floor(Date.now() / 1000);
-      if (diff <= 0) return "Disponível!";
+      if (diff <= 0) return "No ar!";
       const days = Math.floor(diff / 86400);
       const hours = Math.floor((diff % 86400) / 3600);
-      return days > 0 ? `${days}d ${hours}h restantes` : `${hours}h restantes`;
+      return days > 0 ? `${days}d ${hours}h` : `${hours}h restantes`;
+    }
+
+    // Chamadas à API com o novo contrato do Apps Script
+    async function callApi(action, payload = {}) {
+      if (!SCRIPT_URL || !API_SENHA) {
+        abrirConfiguracoes();
+        throw new Error("Configure o Web App e a Senha da API primeiro.");
+      }
+
+      const body = {
+        senha: API_SENHA,
+        action: action,
+        payload: payload
+      };
+
+      try {
+        const res = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(body)
+        });
+        const json = await res.json();
+        if (!json.success) {
+          throw new Error(json.error || "Falha na requisição.");
+        }
+        return json;
+      } catch (err) {
+        console.error("API Call failed:", err);
+        throw err;
+      }
+    }
+
+    // Adicionar anime da exploração para a lista
+    async function toggleAdicionar(btn, id, titulo, capa) {
+      if (btn.classList.contains('added')) {
+        mostrarToast("Anime já cadastrado na sua lista!", "info");
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = "Salvando...";
+
+      try {
+        await callApi('ADD', {
+          anilist_id: id,
+          titulo: titulo,
+          capa: capa,
+          episodio_atual: 0,
+          nota: 0,
+          status: 'assistindo'
+        });
+
+        btn.classList.add('added');
+        btn.textContent = "✓ Na sua lista";
+        mostrarToast(`"${titulo}" adicionado à sua lista!`, "success");
+        carregarMinhaListaSilencioso();
+      } catch (err) {
+        btn.disabled = false;
+        btn.textContent = "+ Adicionar";
+        mostrarToast(err.message, "error");
+      }
+    }
+
+    // Carregar a Minha Lista
+    async function carregarMinhaLista() {
+      const container = document.getElementById('minha-lista-container');
+      container.innerHTML = Array(6).fill(0).map(() => `
+        <div class="card" style="pointer-events:none;">
+          <div class="card-media skeleton"></div>
+          <div class="card-content">
+            <div class="skeleton" style="height:18px; width:70%;"></div>
+            <div class="skeleton" style="height:32px; margin-top:8px;"></div>
+          </div>
+        </div>
+      `).join('');
+
+      try {
+        const res = await callApi('LIST');
+        minhaListaCache = res.data || [];
+        atualizarContadores();
+        renderMinhaLista();
+      } catch (err) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <div class="empty-title">Não foi possível carregar a lista</div>
+            <div class="empty-text">${err.message}</div>
+            <button class="pill active" style="margin-top:10px;" onclick="abrirConfiguracoes()">Verificar Configurações</button>
+          </div>
+        `;
+      }
+    }
+
+    async function carregarMinhaListaSilencioso() {
+      try {
+        const res = await callApi('LIST');
+        minhaListaCache = res.data || [];
+        atualizarContadores();
+      } catch (e) {}
+    }
+
+    function atualizarContadores() {
+      document.getElementById('count-todos').textContent = minhaListaCache.length;
+      document.getElementById('count-assistindo').textContent = minhaListaCache.filter(a => a.status === 'assistindo').length;
+      document.getElementById('count-planejo').textContent = minhaListaCache.filter(a => a.status === 'planejo').length;
+      document.getElementById('count-completo').textContent = minhaListaCache.filter(a => a.status === 'completo').length;
+    }
+
+    function filtrarStatus(status, btn) {
+      currentFilter = status;
+      document.querySelectorAll('#filter-pills .pill').forEach(p => p.classList.remove('active'));
+      btn.classList.add('active');
+      renderMinhaLista();
+    }
+
+    // Renderizar Minha Lista
+    function renderMinhaLista() {
+      const container = document.getElementById('minha-lista-container');
+      container.innerHTML = '';
+
+      const filtrados = minhaListaCache.filter(item => {
+        if (currentFilter === 'todos') return true;
+        return String(item.status).toLowerCase() === currentFilter;
+      });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📂</div>
+            <div class="empty-title">Nenhum anime encontrado</div>
+            <div class="empty-text">Adicione animes através das abas Temporada ou Buscar.</div>
+          </div>
+        `;
+        return;
+      }
+
+      filtrados.forEach(anime => {
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const statusClass = `badge-${anime.status || 'assistindo'}`;
+        const statusLabel = anime.status === 'planejo' ? 'Planejo' : anime.status === 'completo' ? 'Completo' : 'Assistindo';
+
+        card.innerHTML = `
+          <div class="card-media">
+            <img src="${anime.capa}" alt="${anime.titulo}" loading="lazy">
+            <div class="badge-status-tag ${statusClass}">${statusLabel}</div>
+            ${anime.nota > 0 ? `<div class="badge-score">★ ${anime.nota}</div>` : ''}
+          </div>
+
+          <div class="card-content">
+            <div class="card-title" title="${anime.titulo}">${anime.titulo}</div>
+
+            <!-- Contador de episódios rápido -->
+            <div class="tracker-control">
+              <span class="ep-label">Progresso</span>
+              <div class="ep-stepper">
+                <button class="btn-step" onclick="passarEpisodio(${anime.anilist_id}, -1)">−</button>
+                <span class="ep-val" id="ep-display-${anime.anilist_id}">${anime.episodio_atual}</span>
+                <button class="btn-step" onclick="passarEpisodio(${anime.anilist_id}, 1)">+</button>
+              </div>
+            </div>
+
+            <div class="card-footer-actions">
+              <button class="btn-subtle-icon" onclick="abrirModalEdicao(${anime.anilist_id})">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04a.996.996 0 0 0 0-1.41l-2.34-2.34a.996.996 0 0 0-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                Detalhes
+              </button>
+              <button class="btn-subtle-icon btn-subtle-danger" onclick="excluirAnimeRapido(${anime.anilist_id}, '${escapeQuotes(anime.titulo)}')">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    // Controle rápido de episódio com debounce/atualização na nuvem
+    async function passarEpisodio(id, delta) {
+      const anime = minhaListaCache.find(a => Number(a.anilist_id) === Number(id));
+      if (!anime) return;
+
+      const novoEp = Math.max(0, (Number(anime.episodio_atual) || 0) + delta);
+      anime.episodio_atual = novoEp;
+
+      const display = document.getElementById(`ep-display-${id}`);
+      if (display) display.textContent = novoEp;
+
+      try {
+        await callApi('UPDATE', {
+          anilist_id: id,
+          episodio_atual: novoEp
+        });
+        mostrarToast(`Atualizado: Ep. ${novoEp}`, "success");
+      } catch (e) {
+        mostrarToast("Erro ao sincronizar episódio.", "error");
+      }
+    }
+
+    // Modal de Edição Completa
+    function abrirModalEdicao(id) {
+      const anime = minhaListaCache.find(a => Number(a.anilist_id) === Number(id));
+      if (!anime) return;
+
+      document.getElementById('edit-anime-id').value = anime.anilist_id;
+      document.getElementById('edit-modal-title').textContent = anime.titulo;
+      document.getElementById('edit-status').value = anime.status || 'assistindo';
+      document.getElementById('edit-ep').value = anime.episodio_atual || 0;
+      document.getElementById('edit-nota').value = anime.nota || 0;
+
+      abrirModal('modal-edit');
+    }
+
+    async function confirmarEdicao() {
+      const id = Number(document.getElementById('edit-anime-id').value);
+      const status = document.getElementById('edit-status').value;
+      const episodio_atual = Number(document.getElementById('edit-ep').value);
+      const nota = Number(document.getElementById('edit-nota').value);
+
+      fecharModal('modal-edit');
+      mostrarToast("Salvando alterações...", "info");
+
+      try {
+        await callApi('UPDATE', {
+          anilist_id: id,
+          status,
+          episodio_atual,
+          nota
+        });
+
+        // Atualiza cache local
+        const item = minhaListaCache.find(a => Number(a.anilist_id) === id);
+        if (item) {
+          item.status = status;
+          item.episodio_atual = episodio_atual;
+          item.nota = nota;
+        }
+        atualizarContadores();
+        renderMinhaLista();
+        mostrarToast("Anime atualizado com sucesso!", "success");
+      } catch (err) {
+        mostrarToast("Erro ao salvar: " + err.message, "error");
+      }
+    }
+
+    async function excluirAnimeModal() {
+      const id = Number(document.getElementById('edit-anime-id').value);
+      fecharModal('modal-edit');
+      executarExclusao(id);
+    }
+
+    async function excluirAnimeRapido(id, titulo) {
+      if (!confirm(`Deseja remover "${titulo}" da sua lista?`)) return;
+      executarExclusao(id);
+    }
+
+    async function executarExclusao(id) {
+      mostrarToast("Removendo anime...", "info");
+      try {
+        await callApi('DELETE', { anilist_id: id });
+        minhaListaCache = minhaListaCache.filter(a => Number(a.anilist_id) !== id);
+        atualizarContadores();
+        renderMinhaLista();
+        mostrarToast("Anime removido da lista.", "success");
+      } catch (err) {
+        mostrarToast("Erro ao remover: " + err.message, "error");
+      }
     }
 
     // Busca no AniList
     async function buscarAnime() {
-      const term = document.getElementById('search-input').value.trim();
+      const input = document.getElementById('search-input');
+      const term = input.value.trim();
       if (!term) return;
+
       const container = document.getElementById('busca-list');
-      container.innerHTML = '<div class="loading">Pesquisando...</div>';
+      container.innerHTML = Array(4).fill(0).map(() => `
+        <div class="card" style="pointer-events:none;">
+          <div class="card-media skeleton"></div>
+          <div class="card-content">
+            <div class="skeleton" style="height:18px; width:70%;"></div>
+          </div>
+        </div>
+      `).join('');
 
       const query = `
         query ($search: String) {
-          Page(page: 1, perPage: 12) {
+          Page(page: 1, perPage: 16) {
             media(search: $search, type: ANIME, sort: SEARCH_MATCH) {
               id
               title { romaji english }
@@ -248,146 +1475,47 @@
 
       const data = await queryAniList(query, { search: term });
       container.innerHTML = '';
-      if (!data || !data.Page) return;
-
-      data.Page.media.forEach(anime => {
-        const title = anime.title.english || anime.title.romaji;
-        container.innerHTML += `
-          <div class="card">
-            <img src="${anime.coverImage.large}" alt="${title}">
-            <div class="card-body">
-              <div class="card-title">${title}</div>
-              <div class="card-meta">★ ${(anime.averageScore/10 || 0).toFixed(1)}</div>
-              <div class="card-actions">
-                <button class="btn" onclick="adicionarAnime(${anime.id}, '${escapeHtml(title)}', '${anime.coverImage.large}')">+ Minha Lista</button>
-              </div>
-            </div>
+      if (!data || !data.Page || data.Page.media.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🤷</div>
+            <div class="empty-title">Nenhum resultado para "${term}"</div>
+            <div class="empty-text">Tente pesquisar com outro nome em inglês ou romanizado.</div>
           </div>
         `;
-      });
-    }
-
-    // Chamadas para o Backend Apps Script sem CORS Preflight
-    async function callAppsScript(action, payload) {
-      // Usa POST com Content-Type text/plain para evitar envio do OPTIONS prévio pelo navegador
-      const res = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-        body: JSON.stringify({ action, payload })
-      });
-      return await res.json();
-    }
-
-    // Adicionar anime na planilha
-    async function adicionarAnime(id, titulo, capa) {
-      const res = await callAppsScript('ADD', {
-        anilist_id: id,
-        titulo: titulo,
-        capa: capa,
-        episodio_atual: 0,
-        nota: 0,
-        status: 'assistindo'
-      });
-      if (res.success) {
-        alert(`${titulo} adicionado à sua lista!`);
-      } else {
-        alert("Erro ao adicionar: " + res.error);
-      }
-    }
-
-    // Buscar lista da planilha
-    async function carregarMinhaLista() {
-      const container = document.getElementById('minha-lista-container');
-      container.innerHTML = '<div class="loading">Carregando sua lista...</div>';
-      
-      const res = await fetch(SCRIPT_URL);
-      const json = await res.json();
-      
-      if (json.success) {
-        minhaListaCache = json.data;
-        renderMinhaLista();
-      } else {
-        container.innerHTML = '<div>Erro ao carregar lista.</div>';
-      }
-    }
-
-    // Renderizar lista filtrada
-    function renderMinhaLista() {
-      const container = document.getElementById('minha-lista-container');
-      const filter = document.getElementById('filter-status').value;
-      container.innerHTML = '';
-
-      const filtrados = minhaListaCache.filter(item => {
-        if (filter === 'todos') return true;
-        return String(item.status).toLowerCase() === filter;
-      });
-
-      if (filtrados.length === 0) {
-        container.innerHTML = '<div class="loading">Nenhum anime neste status.</div>';
         return;
       }
 
-      filtrados.forEach(anime => {
-        container.innerHTML += `
-          <div class="card">
-            <img src="${anime.capa}" alt="${anime.titulo}">
-            <div class="card-body">
-              <div class="card-title">${anime.titulo}</div>
-              <div class="card-meta">
-                Status: 
-                <select onchange="atualizarCampo(${anime.anilist_id}, 'status', this.value)">
-                  <option value="assistindo" ${anime.status === 'assistindo' ? 'selected' : ''}>Assistindo</option>
-                  <option value="completo" ${anime.status === 'completo' ? 'selected' : ''}>Completo</option>
-                  <option value="planejo" ${anime.status === 'planejo' ? 'selected' : ''}>Planejo Ver</option>
-                </select>
-              </div>
-              <div class="card-meta">
-                Ep. Atual: 
-                <input type="number" value="${anime.episodio_atual}" style="width: 60px;" 
-                  onchange="atualizarCampo(${anime.anilist_id}, 'episodio_atual', Number(this.value))">
-              </div>
-              <div class="card-meta">
-                Nota: 
-                <input type="number" step="0.5" value="${anime.nota}" style="width: 60px;" 
-                  onchange="atualizarCampo(${anime.anilist_id}, 'nota', Number(this.value))">
-              </div>
-              <div class="card-actions">
-                <button class="btn btn-danger" onclick="removerAnime(${anime.anilist_id})">Remover</button>
-              </div>
-            </div>
-          </div>
-        `;
+      data.Page.media.forEach(anime => {
+        container.appendChild(criarCardExploracao(anime));
       });
     }
 
-    // Atualizar anime
-    async function atualizarCampo(id, campo, valor) {
-      const payload = { anilist_id: id };
-      payload[campo] = valor;
-      await callAppsScript('UPDATE', payload);
-    }
-
-    // Remover anime
-    async function removerAnime(id) {
-      if (!confirm("Remover este anime da sua lista?")) return;
-      await callAppsScript('DELETE', { anilist_id: id });
-      carregarMinhaLista();
-    }
-
-    // Aba de Calendário
+    // Calendário de Próximos Episódios
     async function carregarCalendario() {
       const container = document.getElementById('calendario-container');
-      container.innerHTML = '<div class="loading">Calculando datas de lançamento...</div>';
+      container.innerHTML = '<div class="empty-state"><div class="empty-icon">⏳</div><div class="empty-title">Calculando cronograma...</div></div>';
 
       if (minhaListaCache.length === 0) {
-        const res = await fetch(SCRIPT_URL);
-        const json = await res.json();
-        if (json.success) minhaListaCache = json.data;
+        try {
+          const res = await callApi('LIST');
+          minhaListaCache = res.data || [];
+          atualizarContadores();
+        } catch (e) {}
       }
 
-      const ids = minhaListaCache.filter(a => a.status === 'assistindo').map(a => a.anilist_id);
-      if (ids.length === 0) {
-        container.innerHTML = '<div class="loading">Nenhum anime com status "Assistindo".</div>';
+      const assistindoIds = minhaListaCache
+        .filter(a => a.status === 'assistindo')
+        .map(a => Number(a.anilist_id));
+
+      if (assistindoIds.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🗓️</div>
+            <div class="empty-title">Nenhum anime em "Assistindo"</div>
+            <div class="empty-text">Marque animes em exibição como 'Assistindo' para ver os horários de lançamento aqui.</div>
+          </div>
+        `;
         return;
       }
 
@@ -403,19 +1531,21 @@
         }
       `;
 
-      const data = await queryAniList(query, { ids });
+      const data = await queryAniList(query, { ids: assistindoIds });
       container.innerHTML = '';
 
-      if (!data || !data.Page) return;
+      if (!data || !data.Page) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-title">Erro ao obter calendário.</div></div>';
+        return;
+      }
 
       const schedule = [];
       data.Page.media.forEach(m => {
         if (m.nextAiringEpisode) {
-          const date = new Date(m.nextAiringEpisode.airingAt * 1000);
           schedule.push({
             title: m.title.english || m.title.romaji,
             episode: m.nextAiringEpisode.episode,
-            date: date
+            date: new Date(m.nextAiringEpisode.airingAt * 1000)
           });
         }
       });
@@ -423,37 +1553,99 @@
       schedule.sort((a, b) => a.date - b.date);
 
       if (schedule.length === 0) {
-        container.innerHTML = '<div class="loading">Não há episódios futuros agendados para os animes da sua lista.</div>';
+        container.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">🎉</div>
+            <div class="empty-title">Nenhum episódio agendado</div>
+            <div class="empty-text">Todos os seus animes em acompanhamento já finalizaram ou ainda não têm data confirmada.</div>
+          </div>
+        `;
         return;
       }
 
+      // Agrupa por dia
+      const gruposPorDia = {};
       schedule.forEach(item => {
-        const dataFormatada = item.date.toLocaleDateString('pt-BR', {
+        const diaChave = item.date.toLocaleDateString('pt-BR', {
           timeZone: 'America/Sao_Paulo',
           weekday: 'long',
           day: 'numeric',
-          month: 'long',
-          hour: '2-digit',
-          minute: '2-digit'
+          month: 'long'
         });
-        container.innerHTML += `
-          <div style="background: var(--card-bg); padding: 12px; margin-bottom: 8px; border-radius: var(--radius); border: 1px solid var(--border);">
-            <strong>${item.title}</strong> — Episódio ${item.episode}
-            <div style="color: #04d361; font-size: 0.85rem; margin-top: 4px;">${dataFormatada} (Horário de Brasília)</div>
-          </div>
+        if (!gruposPorDia[diaChave]) gruposPorDia[diaChave] = [];
+        gruposPorDia[diaChave].push(item);
+      });
+
+      Object.keys(gruposPorDia).forEach(dia => {
+        const groupEl = document.createElement("div");
+        groupEl.className = "cal-day-group";
+
+        let itensHtml = gruposPorDia[dia].map(item => {
+          const hora = item.date.toLocaleTimeString('pt-BR', {
+            timeZone: 'America/Sao_Paulo',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+          return `
+            <div class="cal-item">
+              <span class="cal-time">${hora}</span>
+              <div class="cal-info">
+                <div class="cal-title">${item.title}</div>
+                <div class="cal-ep">Episódio ${item.episode}</div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        groupEl.innerHTML = `
+          <div class="cal-day-header">${dia}</div>
+          <div>${itensHtml}</div>
         `;
+        container.appendChild(groupEl);
       });
     }
 
-    function escapeHtml(text) {
-      return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    // Gerenciamento de Modal e Configurações
+    function abrirModal(id) {
+      document.getElementById(id).classList.add('active');
+    }
+    function fecharModal(id) {
+      document.getElementById(id).classList.remove('active');
     }
 
-    // Inicialização e PWA Service Worker
-    carregarTemporada();
+    function abrirConfiguracoes() {
+      document.getElementById('cfg-url').value = SCRIPT_URL;
+      document.getElementById('cfg-senha').value = API_SENHA;
+      abrirModal('modal-config');
+    }
 
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+    function salvarConfiguracoes() {
+      const url = document.getElementById('cfg-url').value.trim();
+      const senha = document.getElementById('cfg-senha').value.trim();
+
+      if (!url) {
+        mostrarToast("Informe a URL do Apps Script.", "error");
+        return;
+      }
+      if (!senha) {
+        mostrarToast("Informe sua API_SENHA.", "error");
+        return;
+      }
+
+      SCRIPT_URL = url;
+      API_SENHA = senha;
+      localStorage.setItem(STORAGE_KEY_URL, url);
+      localStorage.setItem(STORAGE_KEY_PASS, senha);
+
+      atualizarIndicadorConexao();
+      fecharModal('modal-config');
+      mostrarToast("Configurações salvas com sucesso!", "success");
+
+      carregarMinhaLista();
+    }
+
+    function escapeQuotes(str) {
+      return String(str).replace(/'/g, "\\'").replace(/"/g, '&quot;');
     }
   </script>
 </body>
