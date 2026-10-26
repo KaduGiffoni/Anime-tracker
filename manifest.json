@@ -1,0 +1,15 @@
+{
+  "name": "Anime Tracker",
+  "short_name": "AnimeTrack",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#121214",
+  "theme_color": "#121214",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2314/2314736.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

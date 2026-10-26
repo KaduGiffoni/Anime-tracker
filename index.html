@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anime Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#121214">
+  <style>
+    :root {
+      --bg: #121214;
+      --card-bg: #202024;
+      --text: #e1e1e6;
+      --text-muted: #a8a8b3;
+      --primary: #8257e5;
+      --primary-hover: #9466ff;
+      --danger: #e54242;
+      --border: #323238;
+      --radius: 8px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background-color: var(--bg); color: var(--text); padding-bottom: 70px; }
+    header { background-color: var(--card-bg); padding: 1rem; text-align: center; border-bottom: 1px solid var(--border); }
+    h1 { font-size: 1.25rem; font-weight: 700; color: var(--text); }
+    
+    /* Navegação */
+    nav {
+      position: fixed; bottom: 0; left: 0; right: 0;
+      background: var(--card-bg); display: flex;
+      border-top: 1px solid var(--border); z-index: 100;
+    }
+    nav button {
+      flex: 1; padding: 14px; background: none; border: none;
+      color: var(--text-muted); font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    }
+    nav button.active { color: var(--primary); border-top: 2px solid var(--primary); }
+
+    /* Conteúdo */
+    .container { max-width: 1000px; margin: auto; padding: 1rem; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* Busca */
+    .search-bar { display: flex; gap: 8px; margin-bottom: 1rem; }
+    input, select {
+      background: var(--card-bg); border: 1px solid var(--border);
+      color: var(--text); padding: 10px; border-radius: var(--radius); outline: none;
+    }
+    .search-bar input { flex: 1; }
+    button.btn {
+      background: var(--primary); color: #fff; border: none;
+      padding: 10px 16px; border-radius: var(--radius); cursor: pointer; font-weight: 600;
+    }
+    button.btn:hover { background: var(--primary-hover); }
+    button.btn-danger { background: var(--danger); }
+
+    /* Grid de Cards */
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+    .card {
+      background: var(--card-bg); border-radius: var(--radius);
+      border: 1px solid var(--border); overflow: hidden; display: flex; flex-direction: column;
+    }
+    .card img { width: 100%; height: 280px; object-fit: cover; }
+    .card-body { padding: 12px; flex: 1; display: flex; flex-direction: column; }
+    .card-title { font-size: 1rem; font-weight: 600; margin-bottom: 6px; line-height: 1.3; }
+    .card-meta { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; }
+    .card-actions { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+
+    .countdown { font-weight: bold; color: #04d361; font-size: 0.85rem; margin-bottom: 4px; }
+    .filters { display: flex; gap: 8px; margin-bottom: 1rem; }
+    .loading { text-align: center; padding: 2rem; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Anime Tracker</h1>
+  </header>
+
+  <div class="container">
+    <!-- ABA: TEMPORADA -->
+    <div id="tab-temporada" class="tab-content active">
+      <div id="temporada-list" class="grid"></div>
+    </div>
+
+    <!-- ABA: MINHA LISTA -->
+    <div id="tab-lista" class="tab-content">
+      <div class="filters">
+        <select id="filter-status" onchange="renderMinhaLista()">
+          <option value="todos">Todos</option>
+          <option value="assistindo">Assistindo</option>
+          <option value="completo">Completo</option>
+          <option value="planejo">Planejo Ver</option>
+        </select>
+      </div>
+      <div id="minha-lista-container" class="grid"></div>
+    </div>
+
+    <!-- ABA: CALENDÁRIO -->
+    <div id="tab-calendario" class="tab-content">
+      <div id="calendario-container"></div>
+    </div>
+
+    <!-- ABA: BUSCA -->
+    <div id="tab-busca" class="tab-content">
+      <div class="search-bar">
+        <input type="text" id="search-input" placeholder="Buscar por título no AniList...">
+        <button class="btn" onclick="buscarAnime()">Buscar</button>
+      </div>
+      <div id="busca-list" class="grid"></div>
+    </div>
+  </div>
+
+  <nav>
+    <button class="active" onclick="switchTab('tab-temporada', this)">Temporada</button>
+    <button onclick="switchTab('tab-lista', this)">Minha Lista</button>
+    <button onclick="switchTab('tab-calendario', this)">Calendário</button>
+    <button onclick="switchTab('tab-busca', this)">Buscar</button>
+  </nav>
+
+  <script>
+    // URL gerada na publicação do seu Web App no Apps Script
+    const SCRIPT_URL = "https://docs.google.com/spreadsheets/d/1bxRvDgGyD8yMardJ0p7EUe3tUb6xS6OH62vZTHLmXjw/edit?hl=pt-br&gid=881120276#gid=881120276";
+
+    let minhaListaCache = [];
+
+    // Alternar abas
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('nav button').forEach(el => el.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      btn.classList.add('active');
+
+      if (tabId === 'tab-lista') carregarMinhaLista();
+      if (tabId === 'tab-calendario') carregarCalendario();
+    }
+
+    // Identificar ano e temporada atuais
+    function getCurrentSeason() {
+      const now = new Date();
+      const month = now.getMonth() + 1;
+      const year = now.getFullYear();
+      let season = 'WINTER';
+      if (month >= 4 && month <= 6) season = 'SPRING';
+      else if (month >= 7 && month <= 9) season = 'SUMMER';
+      else if (month >= 10 && month <= 12) season = 'FALL';
+      return { season, year };
+    }
+
+    // Consulta GraphQL ao AniList direto do navegador
+    async function queryAniList(query, variables) {
+      try {
+        const res = await fetch('https://graphql.anilist.co', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query, variables })
+        });
+        const json = await res.json();
+        return json.data;
+      } catch (e) {
+        console.error("Erro ao consultar AniList:", e);
+        return null;
+      }
+    }
+
+    // Carregar Animes da Temporada
+    async function carregarTemporada() {
+      const container = document.getElementById('temporada-list');
+      container.innerHTML = '<div class="loading">Buscando lançamentos da temporada...</div>';
+
+      const { season, year } = getCurrentSeason();
+      const query = `
+        query ($season: MediaSeason, $year: Int) {
+          Page(page: 1, perPage: 24) {
+            media(season: $season, seasonYear: $year, type: ANIME, sort: POPULARITY_DESC) {
+              id
+              title { romaji english }
+              coverImage { large }
+              averageScore
+              popularity
+              genres
+              episodes
+              nextAiringEpisode { episode airingAt }
+            }
+          }
+        }
+      `;
+
+      const data = await queryAniList(query, { season, year });
+      container.innerHTML = '';
+      if (!data || !data.Page) return;
+
+      data.Page.media.forEach(anime => {
+        const title = anime.title.english || anime.title.romaji;
+        const genres = anime.genres ? anime.genres.slice(0, 2).join(', ') : '';
+        const score = anime.averageScore ? (anime.averageScore / 10).toFixed(1) : '-';
+        
+        let airingStr = '';
+        if (anime.nextAiringEpisode) {
+          airingStr = `<div class="countdown">Ep. ${anime.nextAiringEpisode.episode}: ${formatTimeLeft(anime.nextAiringEpisode.airingAt)}</div>`;
+        }
+
+        container.innerHTML += `
+          <div class="card">
+            <img src="${anime.coverImage.large}" alt="${title}">
+            <div class="card-body">
+              <div class="card-title">${title}</div>
+              <div class="card-meta">★ ${score} | ${genres}</div>
+              ${airingStr}
+              <div class="card-actions">
+                <button class="btn" onclick="adicionarAnime(${anime.id}, '${escapeHtml(title)}', '${anime.coverImage.large}')">+ Minha Lista</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Formatar contagem regressiva
+    function formatTimeLeft(timestamp) {
+      const diff = timestamp - Math.floor(Date.now() / 1000);
+      if (diff <= 0) return "Disponível!";
+      const days = Math.floor(diff / 86400);
+      const hours = Math.floor((diff % 86400) / 3600);
+      return days > 0 ? `${days}d ${hours}h restantes` : `${hours}h restantes`;
+    }
+
+    // Busca no AniList
+    async function buscarAnime() {
+      const term = document.getElementById('search-input').value.trim();
+      if (!term) return;
+      const container = document.getElementById('busca-list');
+      container.innerHTML = '<div class="loading">Pesquisando...</div>';
+
+      const query = `
+        query ($search: String) {
+          Page(page: 1, perPage: 12) {
+            media(search: $search, type: ANIME, sort: SEARCH_MATCH) {
+              id
+              title { romaji english }
+              coverImage { large }
+              averageScore
+              genres
+            }
+          }
+        }
+      `;
+
+      const data = await queryAniList(query, { search: term });
+      container.innerHTML = '';
+      if (!data || !data.Page) return;
+
+      data.Page.media.forEach(anime => {
+        const title = anime.title.english || anime.title.romaji;
+        container.innerHTML += `
+          <div class="card">
+            <img src="${anime.coverImage.large}" alt="${title}">
+            <div class="card-body">
+              <div class="card-title">${title}</div>
+              <div class="card-meta">★ ${(anime.averageScore/10 || 0).toFixed(1)}</div>
+              <div class="card-actions">
+                <button class="btn" onclick="adicionarAnime(${anime.id}, '${escapeHtml(title)}', '${anime.coverImage.large}')">+ Minha Lista</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Chamadas para o Backend Apps Script sem CORS Preflight
+    async function callAppsScript(action, payload) {
+      // Usa POST com Content-Type text/plain para evitar envio do OPTIONS prévio pelo navegador
+      const res = await fetch(SCRIPT_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action, payload })
+      });
+      return await res.json();
+    }
+
+    // Adicionar anime na planilha
+    async function adicionarAnime(id, titulo, capa) {
+      const res = await callAppsScript('ADD', {
+        anilist_id: id,
+        titulo: titulo,
+        capa: capa,
+        episodio_atual: 0,
+        nota: 0,
+        status: 'assistindo'
+      });
+      if (res.success) {
+        alert(`${titulo} adicionado à sua lista!`);
+      } else {
+        alert("Erro ao adicionar: " + res.error);
+      }
+    }
+
+    // Buscar lista da planilha
+    async function carregarMinhaLista() {
+      const container = document.getElementById('minha-lista-container');
+      container.innerHTML = '<div class="loading">Carregando sua lista...</div>';
+      
+      const res = await fetch(SCRIPT_URL);
+      const json = await res.json();
+      
+      if (json.success) {
+        minhaListaCache = json.data;
+        renderMinhaLista();
+      } else {
+        container.innerHTML = '<div>Erro ao carregar lista.</div>';
+      }
+    }
+
+    // Renderizar lista filtrada
+    function renderMinhaLista() {
+      const container = document.getElementById('minha-lista-container');
+      const filter = document.getElementById('filter-status').value;
+      container.innerHTML = '';
+
+      const filtrados = minhaListaCache.filter(item => {
+        if (filter === 'todos') return true;
+        return String(item.status).toLowerCase() === filter;
+      });
+
+      if (filtrados.length === 0) {
+        container.innerHTML = '<div class="loading">Nenhum anime neste status.</div>';
+        return;
+      }
+
+      filtrados.forEach(anime => {
+        container.innerHTML += `
+          <div class="card">
+            <img src="${anime.capa}" alt="${anime.titulo}">
+            <div class="card-body">
+              <div class="card-title">${anime.titulo}</div>
+              <div class="card-meta">
+                Status: 
+                <select onchange="atualizarCampo(${anime.anilist_id}, 'status', this.value)">
+                  <option value="assistindo" ${anime.status === 'assistindo' ? 'selected' : ''}>Assistindo</option>
+                  <option value="completo" ${anime.status === 'completo' ? 'selected' : ''}>Completo</option>
+                  <option value="planejo" ${anime.status === 'planejo' ? 'selected' : ''}>Planejo Ver</option>
+                </select>
+              </div>
+              <div class="card-meta">
+                Ep. Atual: 
+                <input type="number" value="${anime.episodio_atual}" style="width: 60px;" 
+                  onchange="atualizarCampo(${anime.anilist_id}, 'episodio_atual', Number(this.value))">
+              </div>
+              <div class="card-meta">
+                Nota: 
+                <input type="number" step="0.5" value="${anime.nota}" style="width: 60px;" 
+                  onchange="atualizarCampo(${anime.anilist_id}, 'nota', Number(this.value))">
+              </div>
+              <div class="card-actions">
+                <button class="btn btn-danger" onclick="removerAnime(${anime.anilist_id})">Remover</button>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    // Atualizar anime
+    async function atualizarCampo(id, campo, valor) {
+      const payload = { anilist_id: id };
+      payload[campo] = valor;
+      await callAppsScript('UPDATE', payload);
+    }
+
+    // Remover anime
+    async function removerAnime(id) {
+      if (!confirm("Remover este anime da sua lista?")) return;
+      await callAppsScript('DELETE', { anilist_id: id });
+      carregarMinhaLista();
+    }
+
+    // Aba de Calendário
+    async function carregarCalendario() {
+      const container = document.getElementById('calendario-container');
+      container.innerHTML = '<div class="loading">Calculando datas de lançamento...</div>';
+
+      if (minhaListaCache.length === 0) {
+        const res = await fetch(SCRIPT_URL);
+        const json = await res.json();
+        if (json.success) minhaListaCache = json.data;
+      }
+
+      const ids = minhaListaCache.filter(a => a.status === 'assistindo').map(a => a.anilist_id);
+      if (ids.length === 0) {
+        container.innerHTML = '<div class="loading">Nenhum anime com status "Assistindo".</div>';
+        return;
+      }
+
+      const query = `
+        query ($ids: [Int]) {
+          Page(page: 1, perPage: 50) {
+            media(id_in: $ids) {
+              id
+              title { english romaji }
+              nextAiringEpisode { episode airingAt }
+            }
+          }
+        }
+      `;
+
+      const data = await queryAniList(query, { ids });
+      container.innerHTML = '';
+
+      if (!data || !data.Page) return;
+
+      const schedule = [];
+      data.Page.media.forEach(m => {
+        if (m.nextAiringEpisode) {
+          const date = new Date(m.nextAiringEpisode.airingAt * 1000);
+          schedule.push({
+            title: m.title.english || m.title.romaji,
+            episode: m.nextAiringEpisode.episode,
+            date: date
+          });
+        }
+      });
+
+      schedule.sort((a, b) => a.date - b.date);
+
+      if (schedule.length === 0) {
+        container.innerHTML = '<div class="loading">Não há episódios futuros agendados para os animes da sua lista.</div>';
+        return;
+      }
+
+      schedule.forEach(item => {
+        const dataFormatada = item.date.toLocaleDateString('pt-BR', {
+          timeZone: 'America/Sao_Paulo',
+          weekday: 'long',
+          day: 'numeric',
+          month: 'long',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+        container.innerHTML += `
+          <div style="background: var(--card-bg); padding: 12px; margin-bottom: 8px; border-radius: var(--radius); border: 1px solid var(--border);">
+            <strong>${item.title}</strong> — Episódio ${item.episode}
+            <div style="color: #04d361; font-size: 0.85rem; margin-top: 4px;">${dataFormatada} (Horário de Brasília)</div>
+          </div>
+        `;
+      });
+    }
+
+    function escapeHtml(text) {
+      return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // Inicialização e PWA Service Worker
+    carregarTemporada();
+
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
+    }
+  </script>
+</body>
+</html>
