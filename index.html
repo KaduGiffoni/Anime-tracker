@@ -1523,11 +1523,17 @@
     // Configurações padrão e armazenamento local
     const STORAGE_KEY_URL = "anime_tracker_url";
     const STORAGE_KEY_PASS = "anime_tracker_senha";
+    const STORAGE_KEY_CACHE = "anime_tracker_cache";
 
     let SCRIPT_URL = localStorage.getItem(STORAGE_KEY_URL) || "";
     let API_SENHA = localStorage.getItem(STORAGE_KEY_PASS) || "";
 
     let minhaListaCache = [];
+    try {
+      const cached = localStorage.getItem(STORAGE_KEY_CACHE);
+      if (cached) minhaListaCache = JSON.parse(cached);
+    } catch (e) {}
+
     let currentFilter = 'todos';
     let currentSearchResults = [];
     let batchSelectedIds = new Set();
@@ -1536,10 +1542,18 @@
     let noticiasCache = [];
     let currentNewsCategory = 'todas';
 
+    function salvarCacheLocal() {
+      try {
+        localStorage.setItem(STORAGE_KEY_CACHE, JSON.stringify(minhaListaCache));
+      } catch (e) {}
+    }
+
     // Inicialização
     document.addEventListener("DOMContentLoaded", () => {
       atualizarIndicadorConexao();
+      atualizarContadores();
       carregarTemporada();
+      carregarMinhaListaSilencioso();
 
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(err => console.log('SW:', err));
@@ -1772,7 +1786,7 @@
       return days > 0 ? `${days}d ${hours}h` : `${hours}h restantes`;
     }
 
-    // Chamadas à API com o novo contrato do Apps Script
+    // Chamadas à API com o novo contrato do Apps Script + Fallback inteligente
     async function callApi(action, payload = {}) {
       if (!SCRIPT_URL || !API_SENHA) {
         abrirConfiguracoes();
@@ -1793,10 +1807,28 @@
         });
         const json = await res.json();
         if (!json.success) {
+          // Se for ação LIST e o script retornar erro de ação não reconhecida (versão anterior do Apps Script ativa), tenta GET
+          if (action === 'LIST' && String(json.error || '').toLowerCase().includes('reconhecida')) {
+            console.warn("Apps Script não reconheceu POST LIST, tentando GET fallback...");
+            const getUrl = `${SCRIPT_URL}${SCRIPT_URL.includes('?') ? '&' : '?'}senha=${encodeURIComponent(API_SENHA)}`;
+            const getRes = await fetch(getUrl);
+            const getJson = await getRes.json();
+            if (getJson.success) return getJson;
+          }
           throw new Error(json.error || "Falha na requisição.");
         }
         return json;
       } catch (err) {
+        // Fallback automático para GET caso ocorra falha de rede/resposta e seja a listagem
+        if (action === 'LIST') {
+          try {
+            console.warn("Tentando GET fallback para sincronizar animes...");
+            const getUrl = `${SCRIPT_URL}${SCRIPT_URL.includes('?') ? '&' : '?'}senha=${encodeURIComponent(API_SENHA)}`;
+            const getRes = await fetch(getUrl);
+            const getJson = await getRes.json();
+            if (getJson && getJson.success) return getJson;
+          } catch (e2) {}
+        }
         console.error("API Call failed:", err);
         throw err;
       }
@@ -1831,6 +1863,7 @@
           status: status
         });
 
+        salvarCacheLocal();
         atualizarContadores();
         
         if (btn) {
@@ -1873,38 +1906,62 @@
     // Carregar a Minha Lista
     async function carregarMinhaLista() {
       const container = document.getElementById('minha-lista-container');
-      container.innerHTML = Array(6).fill(0).map(() => `
-        <div class="card" style="pointer-events:none;">
-          <div class="card-media skeleton"></div>
-          <div class="card-content">
-            <div class="skeleton" style="height:18px; width:70%;"></div>
-            <div class="skeleton" style="height:32px; margin-top:8px;"></div>
+      
+      // Se não temos nada no cache local, exibe skeletons de carregamento
+      if (!minhaListaCache || minhaListaCache.length === 0) {
+        container.innerHTML = Array(6).fill(0).map(() => `
+          <div class="card" style="pointer-events:none;">
+            <div class="card-media skeleton"></div>
+            <div class="card-content">
+              <div class="skeleton" style="height:18px; width:70%;"></div>
+              <div class="skeleton" style="height:32px; margin-top:8px;"></div>
+            </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+      } else {
+        // Já renderiza os dados salvos imediatamente
+        renderMinhaLista();
+      }
 
       try {
         const res = await callApi('LIST');
-        minhaListaCache = res.data || [];
-        atualizarContadores();
-        renderMinhaLista();
+        if (res && res.data) {
+          minhaListaCache = res.data;
+          salvarCacheLocal();
+          atualizarContadores();
+          renderMinhaLista();
+        }
       } catch (err) {
-        container.innerHTML = `
-          <div class="empty-state">
-            <div class="empty-icon">⚠️</div>
-            <div class="empty-title">Não foi possível carregar a lista</div>
-            <div class="empty-text">${err.message}</div>
-            <button class="pill active" style="margin-top:10px;" onclick="abrirConfiguracoes()">Verificar Configurações</button>
-          </div>
-        `;
+        console.warn("Erro ao sincronizar com nuvem:", err);
+        // Se já temos animes salvos localmente, não quebra a tela! Mantém eles visíveis
+        if (minhaListaCache && minhaListaCache.length > 0) {
+          atualizarContadores();
+          renderMinhaLista();
+          mostrarToast("Exibindo cópia salva. Para sincronizar na nuvem, publique uma Nova Versão no Apps Script.", "info");
+        } else {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">⚠️</div>
+              <div class="empty-title">Não foi possível carregar a lista</div>
+              <div class="empty-text">${err.message}</div>
+              <div style="font-size:0.8rem; color:var(--text-muted); max-width:340px; margin: 8px auto; line-height: 1.4;">
+                Se você atualizou o código no Apps Script, lembre-se de ir em <strong>Implantar &gt; Gerenciar implantações &gt; Editar &gt; Versão: Nova versão &gt; Implantar</strong>.
+              </div>
+              <button class="pill active" style="margin-top:10px;" onclick="abrirConfiguracoes()">Verificar Configurações</button>
+            </div>
+          `;
+        }
       }
     }
 
     async function carregarMinhaListaSilencioso() {
       try {
         const res = await callApi('LIST');
-        minhaListaCache = res.data || [];
-        atualizarContadores();
+        if (res && res.data) {
+          minhaListaCache = res.data;
+          salvarCacheLocal();
+          atualizarContadores();
+        }
       } catch (e) {}
     }
 
@@ -2006,6 +2063,7 @@
       const ep = Number(anime.episodio_atual) || 1;
       anime.status = 'completo';
 
+      salvarCacheLocal();
       atualizarContadores();
       renderMinhaLista();
       mostrarToast(`"${anime.titulo}" marcado como Visto!`, "success");
@@ -2028,6 +2086,7 @@
       if (!anime) return;
 
       anime.status = novoStatus;
+      salvarCacheLocal();
       atualizarContadores();
       renderMinhaLista();
       mostrarToast(`Status alterado para ${novoStatus}!`, "info");
@@ -2058,6 +2117,7 @@
 
       const novoEp = Math.max(0, (Number(anime.episodio_atual) || 0) + delta);
       anime.episodio_atual = novoEp;
+      salvarCacheLocal();
 
       const display = document.getElementById(`ep-display-${id}`);
       if (display) display.textContent = novoEp;
@@ -2111,6 +2171,7 @@
           item.episodio_atual = episodio_atual;
           item.nota = nota;
         }
+        salvarCacheLocal();
         atualizarContadores();
         renderMinhaLista();
         mostrarToast("Anime atualizado com sucesso!", "success");
@@ -2135,6 +2196,7 @@
       try {
         await callApi('DELETE', { anilist_id: id });
         minhaListaCache = minhaListaCache.filter(a => Number(a.anilist_id) !== id);
+        salvarCacheLocal();
         atualizarContadores();
         renderMinhaLista();
         mostrarToast("Anime removido da lista.", "success");
@@ -2639,6 +2701,7 @@
         }
       }
 
+      salvarCacheLocal();
       atualizarContadores();
       mostrarToast(`🎉 ${sucessos} de ${itens.length} temporadas adicionadas como ${status === 'completo' ? 'Vistas' : 'Assistindo'}!`, "success");
     }
