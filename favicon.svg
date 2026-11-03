@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#12131a" />
+      <stop offset="100%" stop-color="#090a0f" />
+    </linearGradient>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#9d77ff" />
+      <stop offset="50%" stop-color="#7c4dff" />
+      <stop offset="100%" stop-color="#00e676" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00e676" />
+      <stop offset="100%" stop-color="#00b0ff" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="2.5" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Squircle -->
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bgGrad)" stroke="rgba(255,255,255,0.12)" stroke-width="1.5" />
+
+  <!-- Outer Neon Frame -->
+  <rect x="5" y="5" width="54" height="54" rx="13" fill="none" stroke="url(#primaryGrad)" stroke-width="1.2" opacity="0.35" />
+
+  <!-- Stylized Anime Shonen / Play Crest -->
+  <g transform="translate(32,32)">
+    <!-- Dynamic Katana Slash / Wing Left -->
+    <path d="M-18,-14 C-10,-24 8,-22 18,-12 C10,-10 -4,-8 -12,2 C-16,7 -17,14 -18,18 C-19,10 -20,-4 -18,-14 Z" 
+          fill="url(#primaryGrad)" filter="url(#glow)" opacity="0.9" />
+
+    <!-- Sharp Play Blade Right -->
+    <path d="M-8,-16 L18,0 L-8,16 L-2,0 Z" 
+          fill="#ffffff" />
+    <path d="M-4,-10 L14,0 L-4,10 L0,0 Z" 
+          fill="url(#primaryGrad)" />
+
+    <!-- Glowing Anime Star / Sparkle in Top Right -->
+    <path d="M12,-16 Q16,-16 16,-20 Q16,-16 20,-16 Q16,-16 16,-12 Q16,-16 12,-16 Z" 
+          fill="url(#accentGrad)" filter="url(#glow)" />
+    
+    <!-- Neon Dot Accent -->
+    <circle cx="-12" cy="14" r="2.5" fill="#00e676" filter="url(#glow)" />
+  </g>
+</svg>

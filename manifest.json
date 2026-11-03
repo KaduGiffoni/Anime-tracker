@@ -1,15 +1,16 @@
 {
   "name": "Anime Tracker",
   "short_name": "AnimeTrack",
+  "description": "Seu radar elegante e minimalista de lançamentos e episódios de animes.",
   "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#121214",
-  "theme_color": "#121214",
+  "background_color": "#0b0c10",
+  "theme_color": "#090a0f",
   "icons": [
     {
-      "src": "https://cdn-icons-png.flaticon.com/512/2314/2314736.png",
-      "sizes": "512x512",
-      "type": "image/png"
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
     }
   ]
 }
